@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "warn",
+    "react/prop-types": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-useless-escape": "warn",
+    "import/no-anonymous-default-export": "warn"
+  }
+}
