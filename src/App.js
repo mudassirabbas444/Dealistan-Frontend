@@ -47,12 +47,19 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+  console.log('REACT_APP_GOOGLE_CLIENT_ID:', googleClientId);
+  
+  if (!googleClientId) {
+    console.error('REACT_APP_GOOGLE_CLIENT_ID is not set!');
+  }
+  
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
           <NetworkErrorBoundary>
-            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+            <GoogleOAuthProvider clientId={googleClientId}>
               <AppProvider>
                 <AuthProvider>
                   <SocketProvider>

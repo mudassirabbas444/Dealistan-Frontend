@@ -25,7 +25,7 @@ import { sanitizeInput, validateEmail, validatePhone } from '../../utils/securit
 import { uploadImage, validateImageFile } from '../../services/uploadImage';
 
 const ProfilePage = () => {
-  const { user, updateProfile, isLoading: authLoading } = useAuth();
+  const { user, updateProfile, changePassword, isLoading: authLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -33,6 +33,13 @@ const ProfilePage = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [changePasswordData, setChangePasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const {
     register,
@@ -94,6 +101,54 @@ const ProfilePage = () => {
     setAvatarFile(null);
     setAvatarPreview(null);
     reset();
+  };
+
+  const handleChangePassword = () => {
+    setShowChangePasswordModal(true);
+    setChangePasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!changePasswordData.currentPassword || !changePasswordData.newPassword || !changePasswordData.confirmPassword) {
+      toast.error('All fields are required');
+      return;
+    }
+
+    if (changePasswordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    if (changePasswordData.newPassword !== changePasswordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const result = await changePassword(changePasswordData.currentPassword, changePasswordData.newPassword);
+      if (result.success) {
+        toast.success('Password changed successfully');
+        setShowChangePasswordModal(false);
+        setChangePasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        toast.error(result.error || 'Failed to change password');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleAvatarChange = (e) => {
@@ -548,7 +603,7 @@ const ProfilePage = () => {
                   <h3 className='font-medium text-gray-900'>Change Password</h3>
                   <p className='text-sm text-gray-600'>Update your account password</p>
                 </div>
-                <Button variant='outline' size='sm'>
+                <Button variant='outline' size='sm' onClick={handleChangePassword}>
                   Change
                 </Button>
               </div>
@@ -581,6 +636,99 @@ const ProfilePage = () => {
                   Delete
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Change Password Modal */}
+        {showChangePasswordModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
+                <button
+                  onClick={() => setShowChangePasswordModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Password
+                  </label>
+                  <Input
+                    type="password"
+                    value={changePasswordData.currentPassword}
+                    onChange={(e) => setChangePasswordData({
+                      ...changePasswordData,
+                      currentPassword: e.target.value
+                    })}
+                    placeholder="Enter current password"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <Input
+                    type="password"
+                    value={changePasswordData.newPassword}
+                    onChange={(e) => setChangePasswordData({
+                      ...changePasswordData,
+                      newPassword: e.target.value
+                    })}
+                    placeholder="Enter new password"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm New Password
+                  </label>
+                  <Input
+                    type="password"
+                    value={changePasswordData.confirmPassword}
+                    onChange={(e) => setChangePasswordData({
+                      ...changePasswordData,
+                      confirmPassword: e.target.value
+                    })}
+                    placeholder="Confirm new password"
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowChangePasswordModal(false)}
+                    className="flex-1"
+                    disabled={isChangingPassword}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={isChangingPassword}
+                  >
+                    {isChangingPassword ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Changing...
+                      </>
+                    ) : (
+                      'Change Password'
+                    )}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         )}

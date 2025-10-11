@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, AlertCircle, CheckCircle 
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components';
 import GoogleAuth from '../../components/auth/GoogleAuth';
+import NotificationContainer from '../../components/common/NotificationContainer';
 import { VALIDATION, ROUTES } from '../../constants';
 
 const RegisterPage = () => {
@@ -58,16 +59,22 @@ const RegisterPage = () => {
   const onSubmit = async (data) => {
     if (isBlocked) return;
 
+    console.log('Registration attempt:', data);
     const result = await registerUser(data);
+    console.log('Registration result:', result);
+    
     if (result.success) {
       if (result.requiresVerification) {
+        console.log('Redirecting to verification page');
         // Redirect to email verification page
         navigate(`/verify-email?userId=${result.userId}&email=${encodeURIComponent(result.email)}`);
       } else {
+        console.log('Redirecting to dashboard');
         // User is already verified, go to dashboard
         navigate('/dashboard');
       }
     } else {
+      console.log('Registration failed:', result.error);
       // Handle failed registration attempts
       const newAttempts = registrationAttempts + 1;
       setRegistrationAttempts(newAttempts);
@@ -380,7 +387,9 @@ const RegisterPage = () => {
           </div>
         </div>
       </div>
+      <NotificationContainer />
     </div>
+  
   );
 };
 

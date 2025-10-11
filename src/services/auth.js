@@ -30,9 +30,25 @@ class AuthService {
         userData
       );
 
-      if (response.success && response.token) {
+      console.log('AuthService register response:', response);
+      console.log('requiresVerification:', response.requiresVerification);
+      console.log('emailVerified:', response.user?.emailVerified);
+
+      // Check if email verification is required
+      const requiresVerification = response.requiresVerification || !response.user?.emailVerified;
+      
+      // Only set token and user data if verification is not required
+      if (response.success && response.token && !requiresVerification) {
+        console.log('Setting token and user data');
         this.setToken(response.token);
         this.setUserData(response.user);
+      } else {
+        console.log('Not setting token and user data - verification required or no token');
+      }
+
+      // Add requiresVerification flag if missing AND registration is not successful
+      if (!response.success && requiresVerification) {
+        response.requiresVerification = true;
       }
 
       return response;
@@ -68,9 +84,24 @@ class AuthService {
         credentials
       );
 
-      if (response.success && response.token) {
+      console.log('AuthService login response:', response);
+      console.log('emailVerified:', response.user?.emailVerified);
+
+      // Check if email verification is required
+      const requiresVerification = response.requiresVerification || !response.user?.emailVerified;
+      
+      // Only set token and user data if verification is not required
+      if (response.success && response.token && !requiresVerification) {
+        console.log('Setting token and user data for login');
         this.setToken(response.token);
         this.setUserData(response.user);
+      } else {
+        console.log('Not setting token and user data - verification required or no token');
+      }
+
+      // Add requiresVerification flag if missing AND login is not successful
+      if (!response.success && requiresVerification) {
+        response.requiresVerification = true;
       }
 
       return response;
@@ -80,6 +111,18 @@ class AuthService {
         throw new Error(error.message || 'Please check your credentials');
       } else if (error.type === 'unauthorized') {
         throw new Error('Invalid email or password');
+      } else if (error.type === 'forbidden') {
+        // Check if this is an unverified user (403 with user data)
+        if (error.response?.data?.requiresVerification) {
+          console.log('Login requires verification:', error.response.data);
+          return {
+            success: false,
+            requiresVerification: true,
+            message: error.response.data.message,
+            user: error.response.data.user
+          };
+        }
+        throw new Error('You do not have permission to perform this action.');
       } else if (error.type === 'server') {
         throw new Error('Server error. Please try again later.');
       } else if (error.type === 'network') {
@@ -381,7 +424,10 @@ class AuthService {
         otp
       });
 
-      if (response.success && response.user) {
+      // Set token and user data after successful OTP verification
+      if (response.success && response.token) {
+        console.log('Setting token and user data after OTP verification');
+        this.setToken(response.token);
         this.setUserData(response.user);
       }
 

@@ -37,7 +37,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     setIsLoading(true);
     try {
+      console.log('AuthContext login called with:', credentials);
       const response = await authService.login(credentials);
+      console.log('AuthService login response:', response);
 
       if (response.success) {
         setUser(response.user);
@@ -48,14 +50,32 @@ export const AuthProvider = ({ children }) => {
         });
         return { success: true, data: response };
       } else {
-        addNotification({
-          type: 'error',
-          title: 'Login Failed',
-          message: response.message || 'Invalid credentials',
-        });
-        return { success: false, error: response.message };
+        if (response.requiresVerification) {
+          console.log('Login requires verification, redirecting to verification page');
+          addNotification({
+            type: 'info',
+            title: 'Email Verification Required',
+            message: response.message || 'Please verify your email address',
+          });
+          return { 
+            success: false, 
+            error: response.message,
+            requiresVerification: true,
+            userId: response.user?.id,
+            email: response.user?.email
+          };
+        } else {
+          console.log('Login failed:', response.message);
+          addNotification({
+            type: 'error',
+            title: 'Login Failed',
+            message: response.message || 'Invalid credentials',
+          });
+          return { success: false, error: response.message };
+        }
       }
     } catch (error) {
+      console.log('Login error:', error);
       addNotification({
         type: 'error',
         title: 'Login Failed',
@@ -71,10 +91,13 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setIsLoading(true);
     try {
+      console.log('AuthContext register called with:', userData);
       const response = await authService.register(userData);
+      console.log('AuthService register response:', response);
 
       if (response.success) {
         if (response.requiresVerification) {
+          console.log('Registration requires verification');
           // User needs to verify email
           addNotification({
             type: 'info',
@@ -89,6 +112,7 @@ export const AuthProvider = ({ children }) => {
             email: response.user.email
           };
         } else {
+          console.log('Registration successful, user verified');
           // User is already verified (admin or special case)
           setUser(response.user);
           addNotification({
@@ -99,6 +123,7 @@ export const AuthProvider = ({ children }) => {
           return { success: true, data: response };
         }
       } else {
+        console.log('Registration failed:', response.message);
         addNotification({
           type: 'error',
           title: 'Registration Failed',
@@ -107,6 +132,7 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: response.message };
       }
     } catch (error) {
+      console.log('Registration error:', error);
       addNotification({
         type: 'error',
         title: 'Registration Failed',
@@ -360,11 +386,12 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.verifyOTP(userId, otp);
 
       if (response.success) {
+        // Set user and token after successful OTP verification
         setUser(response.user);
         addNotification({
           type: 'success',
           title: 'Email Verified',
-          message: 'Your email has been verified successfully',
+          message: 'Your email has been verified successfully. You are now logged in!',
         });
         return { success: true, data: response };
       } else {

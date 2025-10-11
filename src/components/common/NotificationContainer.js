@@ -5,6 +5,8 @@ import { CheckCircle, AlertCircle, Info, X, XCircle } from 'lucide-react';
 const NotificationContainer = () => {
   const { notifications, removeNotification } = useApp();
 
+  console.log('NotificationContainer - notifications:', notifications);
+
   const getIcon = (type) => {
     switch (type) {
       case 'success':

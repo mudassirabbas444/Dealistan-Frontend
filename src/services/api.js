@@ -138,8 +138,9 @@ class ApiService {
         case 403:
           return {
             type: 'forbidden',
-            message: 'You do not have permission to perform this action.',
+            message: data?.message || 'You do not have permission to perform this action.',
             status,
+            response: { data } // Include response data for special handling
           };
         case 404:
           return {

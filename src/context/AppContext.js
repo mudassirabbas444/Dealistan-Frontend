@@ -211,6 +211,9 @@ export const AppProvider = ({ children }) => {
         timestamp: Date.now(),
         ...notification,
       };
+      
+      console.log('Adding notification:', notificationWithId);
+      
       dispatch({
         type: ACTION_TYPES.ADD_NOTIFICATION,
         payload: notificationWithId,

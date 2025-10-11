@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components';
 import GoogleAuth from '../../components/auth/GoogleAuth';
+import NotificationContainer from '../../components/common/NotificationContainer';
 import { ROUTES } from '../../constants';
 
 const LoginPage = () => {
@@ -19,9 +20,17 @@ const LoginPage = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
+    console.log('LoginPage onSubmit called with:', data);
     const result = await login(data);
+    console.log('LoginPage login result:', result);
+    
     if (result.success) {
+      console.log('Login successful, redirecting to dashboard');
       navigate(ROUTES.DASHBOARD);
+    } else if (result.requiresVerification) {
+      console.log('Login requires verification, redirecting to verification page');
+      // Redirect to email verification page
+      navigate(`/verify-email?userId=${result.userId}&email=${encodeURIComponent(result.email)}`);
     }
   };
 
@@ -166,6 +175,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      <NotificationContainer />
     </div>
   );
 };

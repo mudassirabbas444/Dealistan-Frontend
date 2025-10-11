@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import NotificationContainer from '../../components/common/NotificationContainer';
 import { ROUTES } from '../../constants';
 
 const ResetPasswordPage = () => {
@@ -172,7 +173,9 @@ const ResetPasswordPage = () => {
           </Link>
         </div>
       </div>
+      <NotificationContainer />
     </div>
+    
   );
 };
 

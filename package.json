@@ -48,7 +48,7 @@
     "postcss": "^8.4.33"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set REACT_APP_GOOGLE_CLIENT_ID=700321417987-isbecnp02mm9ktpgg3p3a4u1frb4oa2b.apps.googleusercontent.com&& set REACT_APP_API_URL=http://localhost:5000/api&& react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

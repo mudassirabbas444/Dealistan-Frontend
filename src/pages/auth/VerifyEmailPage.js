@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Mail, ArrowLeft, RefreshCw, CheckCircle, AlertCircle, Shield } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button, Input } from '../../components';
+import NotificationContainer from '../../components/common/NotificationContainer';
 import { ROUTES, VALIDATION } from '../../constants';
 
 const VerifyEmailPage = () => {
@@ -335,7 +336,9 @@ const VerifyEmailPage = () => {
           </div>
         </div>
       </div>
+      <NotificationContainer />
     </div>
+  
   );
 };
 
