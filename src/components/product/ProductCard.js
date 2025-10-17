@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFavoriteStatus, useToggleFavorite } from '../../hooks/useFavorites';
 import { formatCurrency, formatRelativeTime } from '../../utils';
 import FirebaseImage from '../FirebaseImage';
+import { LocationDisplay } from '../location';
 
 const ProductCard = ({ product, viewMode = 'grid', showFavoriteButton = true }) => {
   const navigate = useNavigate();
@@ -68,18 +69,29 @@ const ProductCard = ({ product, viewMode = 'grid', showFavoriteButton = true }) 
             <p className='text-gray-600 text-sm mb-2 line-clamp-2'>
               {product.description}
             </p>
-            <div className='flex items-center gap-2 text-xs text-gray-500 mb-2'>
-              {product.location?.city && (
-                <div className='flex items-center gap-1'>
-                  <MapPin className='h-3 w-3' />
-                  {product.location.city}
-                </div>
-              )}
-              <div className='flex items-center gap-1'>
-                <Clock className='h-3 w-3' />
-                {formatRelativeTime(product.postedAt)}
-              </div>
+        <div className='flex items-center gap-2 text-xs text-gray-500 mb-2'>
+          {product.location?.city && (
+            <div className='flex items-center gap-1'>
+              <MapPin className='h-3 w-3' />
+              {product.location.city}
             </div>
+          )}
+          <div className='flex items-center gap-1'>
+            <Clock className='h-3 w-3' />
+            {formatRelativeTime(product.postedAt)}
+          </div>
+        </div>
+        {product.location && (
+          <div className='mb-2'>
+            <LocationDisplay 
+              productLocation={product.location}
+              showDistance={true}
+              showUserLocation={false}
+              compact={true}
+              className="text-xs"
+            />
+          </div>
+        )}
             <div className='flex justify-between items-center'>
               <span className='text-xl font-bold text-primary-600'>
                 {formatCurrency(product.price)}
@@ -150,6 +162,17 @@ const ProductCard = ({ product, viewMode = 'grid', showFavoriteButton = true }) 
             {formatRelativeTime(product.postedAt)}
           </div>
         </div>
+        {product.location && (
+          <div className='mb-3'>
+            <LocationDisplay 
+              productLocation={product.location}
+              showDistance={true}
+              showUserLocation={false}
+              compact={true}
+              className="text-xs"
+            />
+          </div>
+        )}
         <div className='flex justify-between items-center'>
           <span className='text-xl font-bold text-primary-600'>
             {formatCurrency(product.price)}

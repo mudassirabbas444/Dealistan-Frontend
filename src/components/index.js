@@ -12,3 +12,9 @@ export * from './product';
 // Export common components
 export { default as NotificationContainer } from './common/NotificationContainer';
 export { default as FirebaseImage } from './FirebaseImage';
+
+// Export location components
+export * from './location';
+
+// Export form components
+export * from './forms';

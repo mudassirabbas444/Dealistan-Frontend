@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Upload, X, MapPin, DollarSign, Package, Tag, AlertCircle, CheckCircle } from 'lucide-react';
-import { Button, Input, LoadingSpinner } from '../../components';
+import { Button, Input, LoadingSpinner, LocationInput } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import productService from '../../services/product';
 import categoryService from '../../services/category';
@@ -19,6 +19,7 @@ const CreateProductPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadErrors, setUploadErrors] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [locationData, setLocationData] = useState({});
 
   const {
     register,
@@ -143,9 +144,10 @@ const CreateProductPage = () => {
         negotiable: sanitizedData.negotiable,
         tags: sanitizedData.tags,
         location: {
-          city: sanitizedData.city,
-          area: sanitizedData.area,
-          address: sanitizedData.address
+          city: locationData.city || sanitizedData.city,
+          area: locationData.area || sanitizedData.area,
+          address: locationData.address || sanitizedData.address,
+          coordinates: locationData.coordinates
         },
         images: uploadResult.images.map(img => img.url) // Firebase URLs
       };
@@ -452,62 +454,81 @@ const CreateProductPage = () => {
               Location
             </h2>
             
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+            <div className='space-y-6'>
+              {/* Smart Location Input */}
               <div>
-                <Input
-                  label='City'
-                  placeholder='Enter city'
-                  error={errors.city?.message}
-                  {...register('city', {
-                    required: 'City is required',
-                    minLength: {
-                      value: 2,
-                      message: 'City must be at least 2 characters'
-                    },
-                    maxLength: {
-                      value: 50,
-                      message: 'City must be less than 50 characters'
-                    },
-                    pattern: {
-                      value: /^[a-zA-Z\s]+$/,
-                      message: 'City can only contain letters and spaces'
-                    }
-                  })}
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Location <span className='text-red-500'>*</span>
+                </label>
+                <LocationInput
+                  value={locationData}
+                  onChange={setLocationData}
+                  placeholder="Search for your location or enter address..."
+                  showCurrentLocation={true}
+                  required={true}
                 />
+                <p className='text-sm text-gray-500 mt-2'>
+                  Enter your location to help buyers find products near them
+                </p>
               </div>
 
-              <div>
-                <Input
-                  label='Area'
-                  placeholder='Enter area (optional)'
-                  {...register('area', {
-                    maxLength: {
-                      value: 50,
-                      message: 'Area must be less than 50 characters'
-                    },
-                    pattern: {
-                      value: /^[a-zA-Z0-9\s\-_.,]+$/,
-                      message: 'Area contains invalid characters'
-                    }
-                  })}
-                />
-              </div>
+              {/* Fallback Manual Input */}
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                <div>
+                  <Input
+                    label='City (fallback)'
+                    placeholder='Enter city'
+                    error={errors.city?.message}
+                    {...register('city', {
+                      minLength: {
+                        value: 2,
+                        message: 'City must be at least 2 characters'
+                      },
+                      maxLength: {
+                        value: 50,
+                        message: 'City must be less than 50 characters'
+                      },
+                      pattern: {
+                        value: /^[a-zA-Z\s]+$/,
+                        message: 'City can only contain letters and spaces'
+                      }
+                    })}
+                  />
+                </div>
 
-              <div>
-                <Input
-                  label='Address'
-                  placeholder='Enter address (optional)'
-                  {...register('address', {
-                    maxLength: {
-                      value: 200,
-                      message: 'Address must be less than 200 characters'
-                    },
-                    pattern: {
-                      value: /^[a-zA-Z0-9\s\-_.,#/]+$/,
-                      message: 'Address contains invalid characters'
-                    }
-                  })}
-                />
+                <div>
+                  <Input
+                    label='Area (fallback)'
+                    placeholder='Enter area (optional)'
+                    {...register('area', {
+                      maxLength: {
+                        value: 50,
+                        message: 'Area must be less than 50 characters'
+                      },
+                      pattern: {
+                        value: /^[a-zA-Z0-9\s\-_.,]+$/,
+                        message: 'Area contains invalid characters'
+                      }
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Input
+                    label='Address (fallback)'
+                    placeholder='Enter address (optional)'
+                    {...register('address', {
+                      maxLength: {
+                        value: 200,
+                        message: 'Address must be less than 200 characters'
+                      },
+                      pattern: {
+                        value: /^[a-zA-Z0-9\s\-_.,#/]+$/,
+                        message: 'Address contains invalid characters'
+                      }
+                    })}
+                  />
+                </div>
               </div>
             </div>
           </div>

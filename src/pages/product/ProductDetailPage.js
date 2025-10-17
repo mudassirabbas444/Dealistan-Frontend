@@ -14,7 +14,7 @@ import {
   CheckCircle,
   Star
 } from 'lucide-react';
-import { Button, LoadingSpinner } from '../../components';
+import { Button, LoadingSpinner, LocationDisplay } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { useFavoriteStatus, useToggleFavorite } from '../../hooks/useFavorites';
 import productService from '../../services/product';
@@ -381,23 +381,12 @@ const ProductDetailPage = () => {
           <div className='space-y-6'>
             {/* Location */}
             {product.location && (
-              <div className='card p-6 card-hover'>
-                <h3 className='text-lg font-semibold text-gray-900 mb-4'>Location</h3>
-                <div className='flex items-center gap-2 text-gray-600'>
-                  <MapPin className='h-5 w-5 text-primary-600' />
-                  <div>
-                    {product.location.address && (
-                      <p>{product.location.address}</p>
-                    )}
-                    {product.location.area && (
-                      <p>{product.location.area}</p>
-                    )}
-                    {product.location.city && (
-                      <p className='font-medium'>{product.location.city}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <LocationDisplay 
+                productLocation={product.location}
+                showDistance={true}
+                showUserLocation={true}
+                className="card-hover"
+              />
             )}
 
             {/* Safety Tips */}
