@@ -5,6 +5,7 @@ import { useQuery as useRQ } from '@tanstack/react-query';
 import categoryService from '../../services/category';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Input, LoadingSpinner, ProductCard } from '../../components';
+import { useLocation as useUserLocation } from '../../hooks';
 import { useAuth } from '../../hooks/useAuth';
 import productService from '../../services/product';
 import { formatCurrency, formatRelativeTime } from '../../utils';
@@ -26,6 +27,21 @@ const ProductsPage = () => {
   });
   const [filterErrors, setFilterErrors] = useState({});
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const { location: userLocation, requestLocationPermission, getCurrentLocation } = useUserLocation();
+
+  const applyUserLocationFilter = () => {
+    const city = userLocation?.address?.city;
+    if (!city) {
+      requestLocationPermission();
+      return;
+    }
+    setFilters((f) => ({ ...f, location: city }));
+    toast.success(`Filtering by location: ${city}`);
+  };
+
+  const clearLocationFilterOnly = () => {
+    setFilters((f) => ({ ...f, location: '' }));
+  };
 
   // Fetch root categories for filter
   const { data: categories } = useRQ({
@@ -45,14 +61,22 @@ const ProductsPage = () => {
   } = useQuery({
     queryKey: ['products', searchQuery, filters],
     queryFn: async () => {
-      const response = await productService.searchProducts({
+      const params = {
         keywords: searchQuery,
         category: filters.category,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         condition: filters.condition,
         location: filters.location
-      });
+      };
+
+      // If user has coordinates, include lat/lon for distance-based sorting (no radius by default)
+      if (userLocation?.coordinates) {
+        params.lat = userLocation.coordinates.latitude;
+        params.lon = userLocation.coordinates.longitude;
+      }
+
+      const response = await productService.searchProducts(params);
       return response.data?.products || [];
     },
     enabled: true,
@@ -181,6 +205,33 @@ const ProductsPage = () => {
         </Link>
       </div>
 
+      {/* Location Bar */}
+      <div className='bg-white rounded-lg shadow-soft p-4 mb-4'>
+        <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
+          <div className='flex items-center gap-2 text-sm text-gray-700'>
+            <MapPin className='h-4 w-4 text-primary-600' />
+            {userLocation?.address?.city ? (
+              <span>
+                Your location: <span className='font-medium'>{userLocation.address.city}</span>
+                {userLocation.address.area ? `, ${userLocation.address.area}` : ''}
+              </span>
+            ) : userLocation?.loading ? (
+              <span>Detecting your location…</span>
+            ) : (
+              <span>Location not set</span>
+            )}
+          </div>
+          <div className='flex gap-2'>
+            <Button type='button' variant='secondary' onClick={applyUserLocationFilter}>
+              Use my location
+            </Button>
+            <Button type='button' variant='outline' onClick={clearLocationFilterOnly} disabled={!filters.location}>
+              Clear location
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Search and Filters */}
       <div className='bg-white rounded-lg shadow-soft p-6 mb-8'>
         {/* Filter Errors */}
@@ -268,6 +319,21 @@ const ProductsPage = () => {
                 <X className='h-4 w-4 mr-2' />
                 Clear Filters
               </Button>
+              {/* Show active location filter chip */}
+              {filters.location && (
+                <span className='px-3 py-2 bg-primary-50 text-primary-700 rounded-lg text-sm flex items-center gap-2'>
+                  <MapPin className='h-4 w-4' />
+                  {filters.location}
+                  <button
+                    type='button'
+                    className='ml-1 text-primary-700 hover:text-primary-900'
+                    onClick={clearLocationFilterOnly}
+                    aria-label='Clear location filter'
+                  >
+                    <X className='h-4 w-4' />
+                  </button>
+                </span>
+              )}
             </div>
           </div>
         </form>
