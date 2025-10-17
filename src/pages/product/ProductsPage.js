@@ -30,13 +30,18 @@ const ProductsPage = () => {
   const { location: userLocation, requestLocationPermission, getCurrentLocation } = useUserLocation();
 
   const applyUserLocationFilter = () => {
-    const city = userLocation?.address?.city;
-    if (!city) {
+    // Always request permission if no coordinates yet
+    if (!userLocation?.coordinates) {
       requestLocationPermission();
       return;
     }
-    setFilters((f) => ({ ...f, location: city }));
-    toast.success(`Filtering by location: ${city}`);
+
+    // Prefer coordinates-based sort; also set city filter if we have it
+    const city = userLocation?.address?.city;
+    setFilters((f) => ({ ...f, location: city || f.location }));
+    toast.success(city ? `Filtering by location: ${city}` : 'Using your location');
+    // Trigger an immediate fetch based on coords
+    refetch();
   };
 
   const clearLocationFilterOnly = () => {
@@ -59,7 +64,13 @@ const ProductsPage = () => {
     error,
     refetch
   } = useQuery({
-    queryKey: ['products', searchQuery, filters],
+    queryKey: [
+      'products',
+      searchQuery,
+      filters,
+      userLocation?.coordinates?.latitude || null,
+      userLocation?.coordinates?.longitude || null
+    ],
     queryFn: async () => {
       const params = {
         keywords: searchQuery,
@@ -157,10 +168,10 @@ const ProductsPage = () => {
     refetch();
   }, [validateFilters, searchQuery, refetch]);
 
-  // Refetch on filter change without submit
+  // Refetch on filter/location change without submit
   useEffect(() => {
     refetch();
-  }, [filters, searchQuery, refetch]);
+  }, [filters, searchQuery, userLocation?.coordinates?.latitude, userLocation?.coordinates?.longitude, refetch]);
 
   const clearFilters = () => {
     setFilters({
